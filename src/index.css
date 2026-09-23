@@ -343,4 +343,9 @@ h2 {
     transition: none;
     animation: none;
   }
+
+  .loading-dot {
+    box-shadow: none;
+    background: #fdba74;
+  }
 }

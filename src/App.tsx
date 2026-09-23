@@ -24,6 +24,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const nextIdRef = useRef(1)
+  const latestMessageId = messages.at(-1)?.id
 
   const submitPrompt = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
@@ -176,7 +177,7 @@ function App() {
             </div>
           ) : null}
 
-          <section className="transcript" aria-label="Orange conversation transcript" aria-live="polite" aria-relevant="additions">
+          <section className="transcript" aria-label="Orange conversation transcript">
             {messages.length === 0 ? (
               <div className="empty-state">
                 <h3>No prompts yet</h3>
@@ -184,7 +185,12 @@ function App() {
               </div>
             ) : (
               messages.map((message) => (
-                <article key={message.id} className={`message ${message.role}`}>
+                <article
+                  key={message.id}
+                  className={`message ${message.role}`}
+                  aria-live={message.id === latestMessageId ? "polite" : undefined}
+                  aria-atomic={message.id === latestMessageId ? "true" : undefined}
+                >
                   <div className="message-header">
                     <span>{message.role === 'user' ? 'You' : 'Orange'}</span>
                     {message.role === 'assistant' ? <span className="badge">{message.meta.mode}</span> : null}
