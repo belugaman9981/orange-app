@@ -89,9 +89,9 @@ function extractFocus(prompt: string): string[] {
 }
 
 function chooseIntent(prompt: string) {
-  const lower = prompt.toLowerCase()
+  const tokens = new Set(prompt.toLowerCase().match(/[a-z0-9]+/g) ?? [])
   return (
-    INTENT_RULES.find((rule) => rule.matches.some((keyword) => lower.includes(keyword))) ?? {
+    INTENT_RULES.find((rule) => rule.matches.some((keyword) => tokens.has(keyword))) ?? {
       label: 'Responder',
       summary: 'Reflect the prompt back clearly and keep the answer grounded and concise.',
       nextStep: 'Restate the task in plain language and answer the most direct need first.',

@@ -165,6 +165,13 @@ function App() {
             </div>
           ) : null}
 
+          {isLoading ? (
+            <div className="loading-state" role="status" aria-atomic="true">
+              <span className="loading-dot" aria-hidden="true" />
+              Orange is composing a local deterministic reply…
+            </div>
+          ) : null}
+
           <section className="transcript" aria-label="Orange conversation transcript">
             {messages.length === 0 ? (
               <div className="empty-state">
@@ -199,12 +206,6 @@ function App() {
               ))
             )}
 
-            {isLoading ? (
-              <div className="loading-state" role="status">
-                <span className="loading-dot" aria-hidden="true" />
-                Orange is composing a local deterministic reply…
-              </div>
-            ) : null}
           </section>
         </section>
       </main>
