@@ -25,10 +25,6 @@ function App() {
   const formRef = useRef<HTMLFormElement>(null)
   const nextIdRef = useRef(1)
 
-  const latestAssistantMessage = messages.findLast(
-    (message): message is Extract<ChatMessage, { role: 'assistant' }> => message.role === 'assistant',
-  )
-
   const submitPrompt = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
 
@@ -72,6 +68,20 @@ function App() {
     } catch (submissionError) {
       const message = submissionError instanceof Error ? submissionError.message : 'Orange could not process that prompt.'
       setError(message)
+      setMessages((current) => [
+        ...current,
+        {
+          id: nextIdRef.current++,
+          role: 'assistant',
+          content: `Orange hit a local demo error.\n\n${message}`,
+          meta: {
+            mode: 'Local deterministic demo',
+            intent: 'Error',
+            confidence: '0% deterministic match',
+            focus: ['retry', 'validation'],
+          },
+        },
+      ])
     } finally {
       setIsLoading(false)
     }
@@ -153,12 +163,6 @@ function App() {
             </div>
           </form>
 
-          <p className="sr-only" aria-live="polite" aria-atomic="true">
-            {latestAssistantMessage
-              ? `Orange responded in ${latestAssistantMessage.meta.intent} mode with ${latestAssistantMessage.meta.confidence}.`
-              : ''}
-          </p>
-
           {error ? (
             <div className="status-banner error" role="alert">
               {error}
@@ -172,7 +176,7 @@ function App() {
             </div>
           ) : null}
 
-          <section className="transcript" aria-label="Orange conversation transcript">
+          <section className="transcript" aria-label="Orange conversation transcript" aria-live="polite" aria-relevant="additions">
             {messages.length === 0 ? (
               <div className="empty-state">
                 <h3>No prompts yet</h3>
