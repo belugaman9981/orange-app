@@ -6,7 +6,7 @@ Orange is a polished, minimal TypeScript starter app for a local language-model-
 
 ## Prerequisites
 
-- Node.js 22+ (Node.js 20+ should also work with current Vite releases)
+- Node.js `^20.19.0` or `>=22.12.0`
 - npm 10+
 
 ## Install and run
