@@ -37,7 +37,6 @@ npm run typecheck
 │   └── lib/
 │       └── orangeDemo.ts    # Local deterministic response engine
 ├── index.html               # Vite HTML entry
-├── jev.ts                   # Original exploratory model implementation kept for inspiration
 ├── package.json             # Scripts and dependencies
 └── tsconfig*.json           # TypeScript project configuration
 ```

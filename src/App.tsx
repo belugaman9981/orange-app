@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
-import { generateOrangeReply } from './lib/orangeDemo'
+import { generateOrangeReply, validateOrangePrompt } from './lib/orangeDemo'
 
 type ChatMessage =
   | { id: number; role: 'user'; content: string }
@@ -32,10 +32,13 @@ function App() {
       return
     }
 
-    const draft = prompt.trim()
+    let draft = ''
 
-    if (!draft) {
-      setError('Enter a prompt before submitting to Orange.')
+    try {
+      draft = validateOrangePrompt(prompt)
+    } catch (submissionError) {
+      const message = submissionError instanceof Error ? submissionError.message : 'Orange could not process that prompt.'
+      setError(message)
       return
     }
 

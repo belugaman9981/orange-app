@@ -59,6 +59,20 @@ export type OrangeResult = {
 
 const delay = (ms: number) => new Promise((resolve) => globalThis.setTimeout(resolve, ms))
 
+export function validateOrangePrompt(rawPrompt: string): string {
+  const prompt = rawPrompt.trim()
+
+  if (!prompt) {
+    throw new Error('Enter a prompt before submitting to Orange.')
+  }
+
+  if (prompt.length > 600) {
+    throw new Error('Orange keeps this demo intentionally small: please use 600 characters or fewer.')
+  }
+
+  return prompt
+}
+
 function summarizePrompt(prompt: string): string {
   const collapsed = prompt.replace(/\s+/g, ' ').trim()
   if (collapsed.length <= 110) {
@@ -91,16 +105,7 @@ function confidenceFromPrompt(prompt: string): string {
 }
 
 export async function generateOrangeReply(rawPrompt: string): Promise<OrangeResult> {
-  const prompt = rawPrompt.trim()
-
-  if (!prompt) {
-    throw new Error('Enter a prompt before submitting to Orange.')
-  }
-
-  if (prompt.length > 600) {
-    throw new Error('Orange keeps this demo intentionally small: please use 600 characters or fewer.')
-  }
-
+  const prompt = validateOrangePrompt(rawPrompt)
   const intent = chooseIntent(prompt)
   const focus = extractFocus(prompt)
   const focusList = focus.length > 0 ? focus : ['general request', 'local demo']
