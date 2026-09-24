@@ -1,4 +1,10 @@
+import { Icon } from "./Icon";
+import { useTheme } from "../hooks/useTheme";
+
 export function Header() {
+  const { theme, toggleTheme } = useTheme();
+  const nextTheme = theme === "dark" ? "light" : "dark";
+
   return (
     <header className="app-header">
       <div className="app-header__brand">
@@ -13,8 +19,29 @@ export function Header() {
           <span className="app-header__name">Orange</span>
         </div>
       </div>
-      <span className="app-header__context">Support tools <span>/</span> Ticket triage</span>
-      <span className="app-header__privacy">Runs locally in your browser</span>
+      <span className="app-header__context">Support workspace</span>
+      <div className="app-header__actions">
+        <span className="app-header__privacy"><Icon name="lock" /> Private by default</span>
+        <button
+          className="theme-toggle"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${nextTheme} mode`}
+          title={`Switch to ${nextTheme} mode`}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {theme === "dark" ? (
+              <>
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </>
+            ) : (
+              <path d="M20.6 13.4A8.7 8.7 0 0 1 10.6 3.4a8.8 8.8 0 1 0 10 10Z" />
+            )}
+          </svg>
+          <span>{nextTheme === "dark" ? "Dark mode" : "Light mode"}</span>
+        </button>
+      </div>
     </header>
   );
 }

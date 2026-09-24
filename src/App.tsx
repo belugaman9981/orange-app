@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { ConfidenceBar } from "./components/ConfidenceBar";
 import { Sparkline } from "./components/Sparkline";
+import { Icon } from "./components/Icon";
 import { useJev, type TicketDecision } from "./hooks/useJev";
 import { unlabeledPool } from "./data/tickets";
 import type { TicketLabels } from "./data/tickets";
@@ -111,29 +112,38 @@ export default function App() {
 
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Inbox essentials</p>
+          <p className="eyebrow"><span /> A little clarity for your inbox</p>
           <h1>Ticket triage</h1>
           <p className="page-description">A second look before the next reply.</p>
         </div>
-        <span className={`model-state${jev.isTrained ? " model-state--ready" : ""}`}>
+        <span role="status" className={`model-state${jev.isTrained && !jev.isTraining ? " model-state--ready" : ""}`}>
           <span aria-hidden="true" />{jev.isTraining ? "Training model" : jev.isTrained ? "Ready to review" : "Model not trained"}
         </span>
       </div>
 
       <main className="layout">
-        <section className="card card--main">
-          <div className="section-heading"><h2>Review a ticket</h2><span>01 / Message</span></div>
+        <section className="card card--main" aria-labelledby="review-heading">
+          <div className="section-heading"><div className="section-title"><span className="section-icon"><Icon name="message" /></span><h2 id="review-heading">Review a ticket</h2></div><span>01 / Message</span></div>
           <p className="muted">Check sentiment, urgency, and whether a message needs escalation.</p>
 
           <label className="input-label" htmlFor="ticket-message">Customer message</label>
+          <div className="message-editor">
           <textarea
             id="ticket-message"
             className="ticket-input"
             rows={4}
             value={text}
             onChange={(e) => updateText(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && jev.isTrained && !jev.isTraining && text.trim()) {
+                e.preventDefault();
+                handlePredict();
+              }
+            }}
             placeholder="e.g. Still no refund after 2 weeks, this is ridiculous."
           />
+          <div className="editor-footer"><span>Plain text is all you need.</span><span>{text.length} {text.length === 1 ? "character" : "characters"}</span></div>
+          </div>
 
           <div className="sample-chips">
             <span>Try an example:</span>
@@ -144,20 +154,21 @@ export default function App() {
             ))}
           </div>
 
-          <div className="button-row">
+          <div className="button-row review-actions">
             <button className="btn btn--primary" onClick={handlePredict} disabled={!jev.isTrained || jev.isTraining || !text.trim()}>
-              Review ticket <span aria-hidden="true">→</span>
+              Review ticket <Icon name="arrow" />
             </button>
-            <button className="btn" onClick={() => setShowLabelForm((v) => !v)} aria-expanded={showLabelForm} aria-controls="ticket-label-form" disabled={!text.trim()}>
+            <button className="btn btn--quiet" onClick={() => setShowLabelForm((v) => !v)} aria-expanded={showLabelForm} aria-controls="ticket-label-form" disabled={!text.trim()}>
               {showLabelForm ? "Cancel labeling" : "Add training example"}
             </button>
           </div>
+          <p className="keyboard-hint">Tip: Ctrl / ⌘ + Enter to review</p>
 
           {!jev.isTrained && <p className="hint">{jev.isTraining ? "Preparing the model. This takes a moment." : 'Select "Train model" to start reviewing tickets.'}</p>}
 
           <section className="review-section" aria-label="Ticket assessment" aria-live="polite">
-            <div className="section-heading"><h2>Assessment</h2><span>02 / Results</span></div>
-            {decisionCards ?? <div className="results-empty"><span className="results-empty__mark" aria-hidden="true">—</span><p>Your assessment will appear here.</p><span>Review a message to see its labels and confidence scores.</span></div>}
+            <div className="section-heading"><h2>Assessment</h2><span>{decision ? <><Icon name="check" /> Review complete</> : "02 / Results"}</span></div>
+            {decisionCards ?? <div className="results-empty"><div className="results-preview" aria-hidden="true">{["Sentiment", "Urgency", "Escalation"].map((label) => <div key={label}><span>{label}</span><strong>—</strong><div /></div>)}</div><p>Ready when you are. Review a message to see its assessment.</p></div>}
           </section>
 
           {showLabelForm && (
@@ -198,17 +209,21 @@ export default function App() {
           )}
         </section>
 
-        <aside className="sidebar">
-          <section className="card">
-            <h2>Training</h2>
-            <p className="muted">
-              {jev.examples.length} labeled tickets · {epochsTrained} epochs trained
-            </p>
+        <aside className="sidebar" aria-label="Model tools">
+          <section className="card training-card">
+            <div className="section-heading"><h2>Your model</h2><Icon name="sliders" /></div>
+            <p className="muted">Small, local, and yours to improve.</p>
+            <dl className="training-stats"><div><dt>Labeled tickets</dt><dd>{jev.examples.length}</dd></div><div><dt>Training epochs</dt><dd>{epochsTrained || "—"}</dd></div></dl>
+            <div className="training-chart">
+              <div className="chart-label"><span>Training loss</span><span>{jev.lossHistory.length ? jev.lossHistory[jev.lossHistory.length - 1].toFixed(3) : "—"}</span></div>
+              <Sparkline values={jev.lossHistory} />
+              {epochsTrained > 0 && <div className="chart-axis"><span>Epoch 1</span><span>{epochsTrained}</span></div>}
+            </div>
             <div className="button-row">
               <button className="btn" onClick={handleTrain} disabled={jev.isTraining}>
                 {jev.isTraining ? "Training…" : jev.isTrained ? "Retrain" : "Train model"}
               </button>
-              <button className="btn" onClick={handleSave} disabled={!jev.isTrained}>
+              <button className="btn" onClick={handleSave} disabled={!jev.isTrained || jev.isTraining}>
                 Save
               </button>
               <button className="btn btn--danger" onClick={handleReset} disabled={jev.isTraining}>
@@ -216,12 +231,10 @@ export default function App() {
               </button>
             </div>
             {status && <p className="hint" role="status">{status}</p>}
-            <p className="chart-label">Training loss</p>
-            <Sparkline values={jev.lossHistory} />
           </section>
 
-          <section className="card">
-            <h2>Model performance</h2>
+          <details className="card performance-panel">
+            <summary>Model performance <span aria-hidden="true">+</span></summary>
             <p className="muted">Measured on the training tickets.</p>
             {perQuestion ? (
               <table className="metrics-table">
@@ -251,13 +264,14 @@ export default function App() {
             ) : (
               <p className="muted">Train the model to see metrics.</p>
             )}
-          </section>
+          </details>
 
-          <section className="card">
+          <section className="card learning-card">
+            <span className="learning-caption">A personal touch</span>
             <h2>Needs a human read</h2>
             <p className="muted">Find tickets the model is least sure about and add your own labels.</p>
-            <button className="btn" onClick={handleSuggest} disabled={!jev.isTrained}>
-              Find tickets to label
+            <button className="btn btn--text" onClick={handleSuggest} disabled={!jev.isTrained || jev.isTraining}>
+              Find tickets to label <Icon name="arrow" />
             </button>
             {uncertain.length > 0 && (
               <ul className="uncertain-list">
@@ -276,7 +290,7 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        <span>Orange / Support tools</span><p>Messages are processed on this device.</p>
+        <span>Orange <span className="footer-divider">/</span> A calmer support workflow.</span><p><Icon name="lock" /> Messages stay on this device.</p>
       </footer>
     </div>
   );

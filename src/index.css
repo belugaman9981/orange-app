@@ -1,11 +1,20 @@
+@import "./theme.css";
+
 :root {
-  --orange-500: #b94b23;
-  --orange-600: #9f3e1b;
+  --orange-500: #c35424;
+  --orange-600: #aa451c;
+  --orange-soft: #faf0e5;
   --ink-900: #252923;
   --ink-700: #43483f;
   --ink-500: #6c7168;
   --paper: #ffffff;
-  --line: #dedfd8;
+  --page-bg: #f8f6f1;
+  --surface-muted: #fcfbf8;
+  --surface-soft: #f5ecdf;
+  --button-text: #ffffff;
+  --control-line: #d7d4cb;
+  --track: #e9e8e2;
+  --line: #e5e1d8;
   --good: #42634b;
   --good-bg: #edf2ed;
   --warn: #876321;
@@ -15,7 +24,7 @@
   color-scheme: light;
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--ink-900);
-  background: #f6f6f2;
+  background: var(--page-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -27,4 +36,4 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 button, textarea, select, input { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 2px solid var(--orange-500); outline-offset: 4px; }
-::selection { background: #f1d6c9; color: var(--ink-900); }
+::selection { background: var(--orange-soft); color: var(--ink-900); }
