@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/confidencebar.tsx","./src/components/header.tsx","./src/components/sparkline.tsx","./src/data/tickets.ts","./src/hooks/usejev.ts","./src/types/anthropic-sdk.d.ts","./jev.ts"],"version":"5.9.3"}

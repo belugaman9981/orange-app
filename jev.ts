@@ -426,7 +426,7 @@ export class Jev<Q extends Questions> {
         tool_choice: { type: "tool", name: "answer" },
         messages: [{ role: "user", content: `State:\n${JSON.stringify(state)}` }],
       });
-      const call = res.content.find((b) => b.type === "tool_use");
+      const call = res.content.find((b: any) => b.type === "tool_use");
       if (call && call.type === "tool_use") examples.push({ state, labels: call.input as Labels<Q> });
     }
 
