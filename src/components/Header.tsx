@@ -12,6 +12,7 @@ export function Header() {
             <rect width="32" height="32" rx="5" fill="var(--orange-500)" />
             <circle cx="16" cy="16" r="8" fill="none" stroke="white" strokeWidth="2" />
             <path d="M16 8V4" stroke="white" strokeWidth="2" />
+            <path className="app-header__leaf" d="M20.5 7.2c2.8-.2 4.4-1.3 5.2-3.2-2.6-.2-4.8.4-6.2 2.1-.5.6-.6 1-.7 1.6.6-.2 1.1-.4 1.7-.5Z" fill="white" />
           </svg>
         </span>
         <div>

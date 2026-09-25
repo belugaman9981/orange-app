@@ -1,7 +1,7 @@
 :root[data-theme="dark"] {
-  --orange-500: #e99563;
-  --orange-600: #f2b18b;
-  --orange-soft: #362b24;
+  --orange-500: #f1a477;
+  --orange-600: #ffc09b;
+  --orange-soft: #3d2d25;
   --ink-900: #ececea;
   --ink-700: #c7c7c3;
   --ink-500: #a0a09a;
@@ -19,3 +19,4 @@
 }
 :root[data-theme="dark"] .app-header__logo svg circle,
 :root[data-theme="dark"] .app-header__logo svg path { stroke: var(--page-bg); }
+:root[data-theme="dark"] .app-header__logo .app-header__leaf { stroke: none; }
