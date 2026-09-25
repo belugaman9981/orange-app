@@ -1,0 +1,17 @@
+{
+  "name": "Orange Ticket Triage",
+  "short_name": "Orange",
+  "description": "Review support tickets on your device.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdfdfc",
+  "theme_color": "#e58a57",
+  "icons": [
+    {
+      "src": "/orange-icon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
