@@ -251,9 +251,11 @@ export default function App() {
 
           <div className="button-row review-actions">
             <button className="btn btn--primary" onClick={handlePredict} disabled={!jev.isTrained || jev.isTraining || !text.trim()}>
+              <Icon name="message" />
               Review ticket
             </button>
             <button className="btn btn--quiet" onClick={openLabels} aria-expanded={showLabelForm} aria-controls="ticket-label-form" disabled={!text.trim() || jev.isTraining}>
+              <Icon name={showLabelForm ? "check" : "sliders"} />
               {showLabelForm ? "Cancel labeling" : decision ? "Correct assessment" : "Add training example"}
             </button>
           </div>
@@ -320,6 +322,7 @@ export default function App() {
             </div>
             <div className="button-row">
               <button className="btn" onClick={handleTrain} disabled={jev.isTraining}>
+                <Icon name="sliders" />
                 {jev.isTraining ? "Training…" : jev.isTrained ? "Retrain" : "Train model"}
               </button>
               <button className="btn" onClick={handleSave} disabled={!jev.isTrained || jev.isTraining}>
