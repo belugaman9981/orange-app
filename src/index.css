@@ -25,7 +25,7 @@
   text-rendering: optimizeLegibility;
 }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
+body { margin: 0; min-width: 320px; transition: background-color 0.2s ease, color 0.2s ease; }
 h1, h2, h3, p { margin: 0; }
 button, textarea, select, input { font: inherit; }
 button { cursor: pointer; }
