@@ -1,4 +1,3 @@
-import { Icon } from "./Icon";
 import { useTheme } from "../hooks/useTheme";
 
 export function Header() {
@@ -19,9 +18,8 @@ export function Header() {
           <span className="app-header__name">Orange</span>
         </div>
       </div>
-      <span className="app-header__context">Support workspace</span>
+      <span className="app-header__context">Support tools</span>
       <div className="app-header__actions">
-        <span className="app-header__privacy"><Icon name="lock" /> Private by default</span>
         <button
           className="theme-toggle"
           type="button"

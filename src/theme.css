@@ -1,65 +1,21 @@
 :root[data-theme="dark"] {
-  --orange-500: #eea076;
-  --orange-600: #f3b28f;
-  --orange-soft: #3c2d24;
-  --ink-900: #f2ede4;
-  --ink-700: #d2cfc4;
-  --ink-500: #a9aaa0;
-  --paper: #252622;
-  --page-bg: #1d1e1b;
-  --surface-muted: #22231f;
-  --surface-soft: #302a23;
-  --button-text: #261b13;
-  --line: #414139;
-  --control-line: #515147;
-  --track: #41443b;
-  --good: #a6c4a5;
-  --good-bg: #2e3d30;
-  --warn: #dfbd7f;
-  --warn-bg: #3b3323;
-  --bad: #eca89a;
+  --orange-500: #e99563;
+  --orange-600: #f2b18b;
+  --orange-soft: #362b24;
+  --ink-900: #ececea;
+  --ink-700: #c7c7c3;
+  --ink-500: #a0a09a;
+  --paper: #20211f;
+  --page-bg: #1b1c1a;
+  --surface-muted: #292a27;
+  --line: #363732;
+  --control-line: #50514a;
+  --track: #3d3f38;
+  --good: #9bbf9e;
+  --warn: #d7b979;
+  --bad: #e3a094;
   --bad-bg: #402c28;
   color-scheme: dark;
 }
-
-.app-header__actions { display: flex; align-items: center; gap: 20px; margin-left: auto; }
-.app-header__actions .app-header__privacy { margin-left: 0; }
-.theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink-700); font-size: 12px; font-weight: 500; white-space: nowrap; transition: background 150ms ease, border-color 150ms ease; }
-.theme-toggle svg { width: 16px; height: 16px; flex-shrink: 0; }
-.theme-toggle:hover { color: var(--orange-600); border-color: var(--orange-500); background: var(--orange-soft); }
-
-:root[data-theme="dark"] .model-state,
-:root[data-theme="dark"] .message-editor,
-:root[data-theme="dark"] .review-section,
-:root[data-theme="dark"] .training-card,
-:root[data-theme="dark"] .performance-panel { background: var(--surface-muted); }
-:root[data-theme="dark"] .message-editor { border-color: var(--control-line); }
-:root[data-theme="dark"] .message-editor:focus-within { border-color: var(--orange-500); box-shadow: 0 0 0 3px #eea0761c; }
-:root[data-theme="dark"] .editor-footer,
-:root[data-theme="dark"] .metrics-table td,
-:root[data-theme="dark"] .uncertain-item { border-color: var(--line); }
-:root[data-theme="dark"] .chip--active { border-color: #684731; }
-:root[data-theme="dark"] .btn { color: var(--ink-700); background: var(--paper); border-color: var(--control-line); }
-:root[data-theme="dark"] .btn:hover:not(:disabled) { background: #33352e; border-color: #757769; }
-:root[data-theme="dark"] .btn--primary { color: var(--button-text); background: var(--orange-500); border-color: var(--orange-500); box-shadow: none; }
-:root[data-theme="dark"] .btn--primary:hover:not(:disabled) { background: var(--orange-600); border-color: var(--orange-600); }
-:root[data-theme="dark"] .btn--quiet,
-:root[data-theme="dark"] .btn--danger { color: var(--ink-500); background: transparent; border-color: transparent; }
-:root[data-theme="dark"] .btn--quiet:hover:not(:disabled) { border-color: transparent; }
-:root[data-theme="dark"] .btn--danger:hover:not(:disabled) { color: var(--bad); background: var(--bad-bg); border-color: transparent; }
-:root[data-theme="dark"] .btn--text { color: var(--orange-600); background: transparent; border: 0; }
-:root[data-theme="dark"] .btn--text:hover:not(:disabled) { color: var(--ink-900); background: transparent; }
-:root[data-theme="dark"] .results-preview strong { color: var(--ink-500); }
-:root[data-theme="dark"] .results-preview > div > div,
-:root[data-theme="dark"] .confidence-bar__track { background: var(--track); }
-:root[data-theme="dark"] .learning-card { background: var(--surface-soft); border-color: #494033; }
-:root[data-theme="dark"] .learning-card .muted { color: var(--ink-500); }
-:root[data-theme="dark"] .label-form__row select { background: var(--paper); }
-:root[data-theme="dark"] .card--main { box-shadow: 0 3px 12px #00000015; }
-:root[data-theme="dark"] .app-header__logo svg { color: var(--button-text); }
 :root[data-theme="dark"] .app-header__logo svg circle,
-:root[data-theme="dark"] .app-header__logo svg path { stroke: var(--button-text); }
-
-@media (max-width: 1040px) { .app-header__actions { gap: 14px; } }
-@media (max-width: 540px) { .app-header__actions { gap: 10px; } .app-header__actions .app-header__privacy { display: none; } .theme-toggle { min-height: 40px; } }
-@media (max-width: 540px) { :root[data-theme="dark"] .model-state { background: transparent; } }
+:root[data-theme="dark"] .app-header__logo svg path { stroke: var(--page-bg); }
