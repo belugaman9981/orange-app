@@ -170,3 +170,49 @@ a.btn { text-decoration: none; }
 .answer-author { margin: 18px 0 8px; font-size: 12px; color: var(--ink-500); }
 .answer-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.8; }
 .question-layout { padding-bottom: 40px; }
+.workflow-section { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 4px; min-width: 0; }
+.workflow-section > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 0; cursor: pointer; font-size: 14px; font-weight: 600; }
+.workflow-section > summary::after { content: '+'; font-weight: 400; color: var(--ink-500); }
+.workflow-section[open] > summary::after { content: '−'; }
+.workflow-section > summary > span { margin-left: auto; font-size: 12px; color: var(--ink-500); font-weight: 400; }
+.workflow-section textarea, .label-note, .workflow-section select { max-width: 100%; padding: 10px 12px; border: 1px solid var(--control-line); border-radius: 6px; background: var(--paper); color: var(--ink-900); font-size: 13px; line-height: 1.6; }
+.workflow-section textarea, .label-note { width: 100%; resize: vertical; display: block; }
+.workflow-section .btn { margin-top: 12px; }
+.label-form > .btn { margin-top: 14px; }
+.label-note { margin-bottom: 8px; }
+.saved-examples li > .saved-note { white-space: pre-wrap; color: var(--ink-500); margin-top: 7px; }
+.batch-toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: baseline; gap: 12px; margin: 16px 0 12px; }
+.batch-toolbar label { font-size: 12px; }
+.batch-toolbar select { margin-left: 8px; padding: 6px 8px; }
+.table-scroll { max-width: 100%; overflow-x: auto; }
+.workflow-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+.workflow-table th, .workflow-table td { padding: 11px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.workflow-table th { font-weight: 600; }
+.workflow-table thead th { color: var(--ink-500); }
+.batch-table { min-width: 560px; }
+.batch-table td:first-child { width: 40%; }
+.batch-message, .queue-message { padding: 0; border: 0; background: transparent; text-align: left; color: var(--ink-900); line-height: 1.6; overflow-wrap: anywhere; }
+.batch-message { font-size: 12px; }
+.batch-message:hover, .queue-message:hover { color: var(--orange-600); text-decoration: underline; }
+.review-flag { color: var(--warn); font-size: 12px; }
+.batch-table .review-flag { display: block; margin-top: 4px; }
+.review-queue ul { list-style: none; padding: 0; margin: 16px 0; max-height: 360px; overflow-y: auto; }
+.review-queue li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 2px; border-bottom: 1px solid var(--line); }
+.review-queue li > .chip { flex-shrink: 0; }
+.queue-message { font-size: 13px; }
+.label-backup { margin-top: 12px; }
+.label-backup summary { font-size: 12px; font-weight: 400; }
+.label-backup input[type=file] { width: 100%; font-size: 11px; color: var(--ink-700); }
+.import-preview select { display: block; width: 100%; margin-top: 8px; }
+.confidence-guide { margin: 14px 0; font-size: 12px; line-height: 1.6; color: var(--ink-500); }
+.confidence-guide summary { cursor: pointer; margin-top: 10px; }
+.confidence-guide details p { margin-top: 9px; }
+.comparison { margin: 24px 0; border-top: 1px solid var(--line); padding-top: 20px; }
+.comparison h3 { font-size: 14px; margin-bottom: 10px; }
+.changed-label { display: block; font-size: 10px; color: var(--orange-600); }
+@media (min-width: 541px) and (max-width: 760px) {
+  .label-backup { grid-column: 1; grid-row: 3; }
+  .performance-panel { grid-row: 4; }
+  .learning-card { grid-row: 1 / span 4; }
+}
+@media (max-width: 540px) { .workflow-section > summary { flex-wrap: wrap; } .review-queue li { flex-direction: column; gap: 6px; } }

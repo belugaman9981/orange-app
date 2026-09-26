@@ -16,6 +16,7 @@ export type TicketLabels = {
 export interface TicketExample {
   state: string;
   labels: TicketLabels;
+  note?: string;
 }
 
 export const sampleTickets = [

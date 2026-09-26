@@ -65,6 +65,11 @@ its supported question types and answer quality determine the results.
 - Correct an assessment using prefilled labels and include it in the immediate retrain
 - Automatically save custom training labels across reloads; edit or remove them under **Your labels**, with undo for the last removal
 - Download an assessment as a plain text file
+- Batch review up to 100 distinct messages, sorted by urgency, escalation, confidence, or input order
+- Persistent human-review queue with completion and undo
+- Export/import custom labels and notes, with a preview and a choice for matching messages
+- Notes on training examples and a before/after comparison when you correct a trained model
+- Confidence explanations and a visible flag below the 70% review threshold
 
 Drafts use browser storage. Recent reviews are kept only in memory and disappear
 when the page reloads. The editor shows when a draft cannot be saved. Custom labels
@@ -76,6 +81,39 @@ Removing a correction to a built-in ticket restores its original labels.
 don't match the current labels, the app retrains on startup. Older weight-only saves
 also retrain once; use Save afterward to store the new format. **Reset** resets the
 model weights and keeps your custom labels.
+
+## Batch review and saved work
+
+In **Ticket triage**, expand **Batch review** below the message editor. Paste one
+ticket per line, or choose the divider format and put `---` on its own line between
+multiline tickets. Each batch accepts up to 100 distinct messages and 100,000
+characters. Duplicate messages are reviewed once. Select a result to open it in the
+single-ticket editor. Results become unavailable when the messages or model change;
+review the batch again to refresh them.
+
+Single and batch reviews add messages to **Review queue** when any confidence score
+is below 70%. You can also queue a message manually or use **Find tickets** to add
+uncertain sample tickets. The queue stays on this device across reloads. Opening a
+ticket does not complete it: use **Mark reviewed** or save a correction. The most
+recent completion can be undone during the session. Confidence is a model estimate,
+not a calibrated accuracy measure; the threshold is simply a rule for human review.
+
+Add optional notes when labeling a ticket (up to 2,000 characters). Notes are saved
+with the labels but are not used to train the model. **Last correction** shows the
+same message before and after retraining when both predictions are available. This
+comparison is a session-only snapshot, not a measurement of general accuracy.
+
+Expand **Label backup** beside the editor to download `orange-labels.json`. It
+contains your custom ticket messages, labels, and notes; it does not include model
+weights, drafts, or the review queue. Choose a JSON backup under 2 MB to preview an
+import. By default, existing labels and notes win when messages match. Select
+**Use imported labels and notes** to replace those matches, then **Import & retrain**.
+Imports merge instead of deleting unrelated labels. Invalid files make no changes.
+
+If browser storage is unavailable or full, labels and queue changes remain in the
+current tab and show an unsaved notice. Download a label backup before closing the
+tab. Recent-review history, batch input/results, comparison snapshots, and undo
+history last only for the current session.
 
 ## Getting started
 

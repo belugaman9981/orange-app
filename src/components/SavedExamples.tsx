@@ -14,6 +14,7 @@ export function SavedExamples({ examples, disabled, onEdit, onRemove }: Props) {
     {examples.length ? <ul>{examples.map((example) => <li key={example.state}>
       <p>{example.state}</p>
       <span className="saved-labels">{example.labels.sentiment} · Urgency {example.labels.urgency}/10 · {example.labels.needsEscalation ? "Escalate" : "No escalation"}</span>
+      {example.note && <p className="saved-note">Note: {example.note}</p>}
       <div className="button-row">
         <button className="chip" disabled={disabled} onClick={() => onEdit(example)}>Edit labels</button>
         <button className="chip" disabled={disabled} onClick={() => onRemove(example)}>Remove</button>

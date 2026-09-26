@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Jev, type Decision } from "../../jev";
 import { questions, type TicketExample, type TicketLabels } from "../data/tickets";
-import { EXAMPLES_KEY, mergeExamples, parseSavedExamples } from "../data/savedExamples";
+import { EXAMPLES_KEY, mergeExamples, mergeImportedExamples, parseSavedExamples } from "../data/savedExamples";
 
 const STORAGE_KEY = "orange-app:model";
 
@@ -24,6 +24,7 @@ export function useJev() {
   const savedRef = useRef(saved.items);
   const examples = useMemo(() => mergeExamples(saved.items), [saved.items]);
   const trainedDataset = useRef("");
+  const trained = useRef(false);
   const trainingTask = useRef<Promise<void> | null>(null);
   const [isTrained, setIsTrained] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
@@ -51,11 +52,13 @@ export function useJev() {
             setLossHistory(history);
             setReport(evalReport);
             setIsTrained(true);
+            trained.current = true;
             trainedDataset.current = JSON.stringify(dataset);
             setModelVersion((v) => v + 1);
             resolve();
           } catch (error) {
             setIsTrained(false);
+            trained.current = false;
             setReport(null);
             setLossHistory([]);
             reject(error);
@@ -73,10 +76,10 @@ export function useJev() {
 
   const predict = useCallback(
     (text: string): TicketDecision | null => {
-      if (!isTrained || !text.trim()) return null;
+      if (!trained.current || trainingTask.current || !text.trim()) return null;
       return getModel().predict(text);
     },
-    [getModel, isTrained]
+    [getModel]
   );
 
   const commitExamples = useCallback((items: TicketExample[]) => {
@@ -86,6 +89,7 @@ export function useJev() {
     savedRef.current = items;
     setSaved({ items, notice });
     setIsTrained(false);
+    trained.current = false;
     setReport(null);
     setLossHistory([]);
     setModelVersion((value) => value + 1);
@@ -93,14 +97,20 @@ export function useJev() {
     return dataset;
   }, []);
 
-  const addExample = useCallback((state: string, labels: TicketLabels) => {
+  const addExample = useCallback((state: string, labels: TicketLabels, note?: string) => {
     if (trainingTask.current) throw new Error("Wait for training to finish.");
-    const [example] = parseSavedExamples(JSON.stringify({ version: 1, examples: [{ state, labels }] }));
+    const [example] = parseSavedExamples(JSON.stringify({ version: 1, examples: [{ state, labels, note }] }));
     const items = [...savedRef.current];
     const index = items.findIndex((item) => item.state === example.state);
     if (index === -1) items.push(example);
     else items[index] = example;
     return commitExamples(items);
+  }, [commitExamples]);
+
+  const importExamples = useCallback((incoming: TicketExample[], replace: boolean) => {
+    if (trainingTask.current) throw new Error("Wait for training to finish.");
+    const validated = parseSavedExamples(JSON.stringify({ version: 1, examples: incoming }));
+    return commitExamples(mergeImportedExamples(savedRef.current, validated, replace));
   }, [commitExamples]);
 
   const removeExample = useCallback((state: string) => {
@@ -136,6 +146,7 @@ export function useJev() {
         return false;
       }
       trainedDataset.current = dataset;
+      trained.current = true;
       setIsTrained(true);
       setModelVersion((v) => v + 1);
       return true;
@@ -147,6 +158,7 @@ export function useJev() {
   const reset = useCallback(() => {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* Reset the in-memory model even if storage is blocked. */ }
     jevRef.current = new Jev(questions, { hidden: 24, lr: 0.08 });
+    trained.current = false;
     setIsTrained(false);
     setLossHistory([]);
     setReport(null);
@@ -168,11 +180,12 @@ export function useJev() {
       predict,
       addExample,
       removeExample,
+      importExamples,
       pickUncertain,
       save,
       load,
       reset,
     }),
-    [examples, saved, isTrained, isTraining, lossHistory, report, modelVersion, train, predict, addExample, removeExample, pickUncertain, save, load, reset]
+    [examples, saved, isTrained, isTraining, lossHistory, report, modelVersion, train, predict, addExample, removeExample, importExamples, pickUncertain, save, load, reset]
   );
 }

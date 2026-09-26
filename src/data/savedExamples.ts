@@ -12,15 +12,29 @@ export function parseSavedExamples(raw: string): TicketExample[] {
     if (!item || typeof item.state !== "string" || !item.state.trim() || !item.labels ||
         !["angry", "neutral", "happy"].includes(item.labels.sentiment) ||
         typeof item.labels.urgency !== "number" || !Number.isFinite(item.labels.urgency) ||
-        item.labels.urgency < 0 || item.labels.urgency > 10 || typeof item.labels.needsEscalation !== "boolean") {
+        item.labels.urgency < 0 || item.labels.urgency > 10 || typeof item.labels.needsEscalation !== "boolean" ||
+        (item.note !== undefined && (typeof item.note !== "string" || item.note.length > 2000))) {
       throw new Error("Invalid saved label");
     }
-    const example = { state: item.state.trim(), labels: { sentiment: item.labels.sentiment, urgency: item.labels.urgency, needsEscalation: item.labels.needsEscalation } };
+    const example: TicketExample = { state: item.state.trim(), labels: { sentiment: item.labels.sentiment, urgency: item.labels.urgency, needsEscalation: item.labels.needsEscalation } };
+    if (item.note?.trim()) example.note = item.note.trim();
     const existing = result.findIndex((entry) => entry.state === example.state);
     if (existing === -1) result.push(example);
     else result[existing] = example;
   }
   return result;
+}
+
+export function mergeImportedExamples(existing: TicketExample[], incoming: TicketExample[], replace: boolean): TicketExample[] {
+  const merged = new Map(existing.map((example) => [example.state, example]));
+  for (const example of incoming) {
+    if (replace || !merged.has(example.state)) merged.set(example.state, example);
+  }
+  return [...merged.values()];
+}
+
+export function exportExamples(examples: TicketExample[]): string {
+  return JSON.stringify({ version: 1, examples }, null, 2);
 }
 
 export function mergeExamples(saved: TicketExample[]): TicketExample[] {

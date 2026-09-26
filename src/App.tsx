@@ -6,11 +6,18 @@ import { Icon } from "./components/Icon";
 import { RecentReviews } from "./components/RecentReviews";
 import { SavedExamples } from "./components/SavedExamples";
 import { AskQuestion } from "./components/AskQuestion";
+import { BatchReview } from "./components/BatchReview";
+import { ReviewQueue } from "./components/ReviewQueue";
+import { LabelBackup } from "./components/LabelBackup";
+import { ConfidenceGuide } from "./components/ConfidenceGuide";
+import { AssessmentComparison, type Comparison } from "./components/AssessmentComparison";
 import { useJev, type TicketDecision } from "./hooks/useJev";
 import { sampleTickets, unlabeledPool } from "./data/tickets";
 import type { TicketExample, TicketLabels } from "./data/tickets";
 import { rememberReview, useWorkspace } from "./hooks/useWorkspace";
 import { formatAssessment } from "./assessment";
+import { useReviewQueue } from "./hooks/useReviewQueue";
+import { needsHumanReview } from "./reviewWorkflow";
 import "./App.css";
 
 function escalationTone(value: boolean): "good" | "bad" {
@@ -32,6 +39,7 @@ function urgencyTone(value: number): "good" | "warn" | "bad" {
 export default function App() {
   const [mode, setMode] = useState<"tickets" | "questions">("questions");
   const jev = useJev();
+  const queue = useReviewQueue();
   const { text, setText, draftSaved, recent, setRecent } = useWorkspace(sampleTickets[0].state);
   const messageInput = useRef<HTMLTextAreaElement>(null);
   const copyRequest = useRef(0);
@@ -44,10 +52,16 @@ export default function App() {
   const [draftLabels, setDraftLabels] = useState<TicketLabels>({ sentiment: "neutral", urgency: 5, needsEscalation: false });
   const [status, setStatus] = useState<string>("");
   const [removedExample, setRemovedExample] = useState<TicketExample | null>(null);
+  const [draftNote, setDraftNote] = useState("");
+  const [comparison, setComparison] = useState<Comparison | null>(null);
+  const currentText = useRef(text);
 
   const updateText = (value: string) => {
     copyRequest.current += 1;
     setText(value);
+    currentText.current = value;
+    setComparison(null);
+    setDraftNote("");
     setDecision(null);
     setCopyStatus("");
     setManualCopy(false);
@@ -80,7 +94,10 @@ export default function App() {
 
   const openLabels = () => {
     const savedLabels = jev.savedExamples.find((example) => example.state === text.trim());
-    if (savedLabels) setDraftLabels({ ...savedLabels.labels });
+    if (savedLabels) {
+      setDraftLabels({ ...savedLabels.labels });
+      setDraftNote(savedLabels.note ?? "");
+    }
     else if (decision) setDraftLabels({
       sentiment: decision.sentiment.value as TicketLabels["sentiment"],
       urgency: Math.max(0, Math.min(10, Math.round(decision.urgency.value))),
@@ -116,10 +133,14 @@ export default function App() {
     setCopyStatus("");
     setManualCopy(false);
     copyRequest.current += 1;
-    if (result) setRecent((items) => rememberReview(items, text));
+    if (result) {
+      setRecent((items) => rememberReview(items, text));
+      if (needsHumanReview(result)) queue.add([text]);
+    }
   };
 
   const handleTrain = async () => {
+    setComparison(null);
     setStatus("Training…");
     try {
       await jev.train();
@@ -128,7 +149,9 @@ export default function App() {
   };
 
   const handleSuggest = () => {
-    setUncertain(jev.pickUncertain(unlabeledPool, 5));
+    const suggestions = jev.pickUncertain(unlabeledPool, 5);
+    setUncertain(suggestions);
+    queue.add(suggestions.map((item) => String(item.state)));
   };
 
   const handleSave = () => {
@@ -139,6 +162,7 @@ export default function App() {
   };
 
   const handleReset = () => {
+    setComparison(null);
     jev.reset();
     setDecision(null);
     setUncertain([]);
@@ -147,18 +171,26 @@ export default function App() {
 
   const handleAddExample = async () => {
     if (!text.trim() || jev.isTraining) return;
+    const message = text;
+    const before = jev.predict(message);
     try {
-      const dataset = jev.addExample(text, draftLabels);
+      const dataset = jev.addExample(message, draftLabels, draftNote);
       setRemovedExample(null);
       setStatus("Labels updated — retraining…");
       await jev.train({ dataset });
-      setShowLabelForm(false);
+      queue.complete(message);
+      const after = jev.predict(message);
+      if (currentText.current === message) {
+        setShowLabelForm(false);
+        if (before && after) setComparison({ message, before, after });
+      }
       setStatus(`Labels updated. Dataset now has ${dataset.length} tickets.`);
     } catch { setStatus("Couldn't finish retraining. Your current labels are still available; try Train model again."); }
   };
 
   const handleRemoveExample = async (example: TicketExample) => {
     if (jev.isTraining) return;
+    setComparison(null);
     try {
       const dataset = jev.removeExample(example.state);
       setRemovedExample(example);
@@ -171,12 +203,27 @@ export default function App() {
   const handleUndoRemove = async () => {
     if (!removedExample || jev.isTraining) return;
     try {
-      const dataset = jev.addExample(removedExample.state, removedExample.labels);
+      setComparison(null);
+      const dataset = jev.addExample(removedExample.state, removedExample.labels, removedExample.note);
       setRemovedExample(null);
       setStatus("Label restored — retraining…");
       await jev.train({ dataset });
       setStatus("Label restored. Model retrained.");
     } catch { setStatus("Couldn't finish retraining. Try Train model again."); }
+  };
+
+  const handleImport = async (incoming: TicketExample[], replace: boolean) => {
+    setComparison(null);
+    setRemovedExample(null);
+    try {
+      const dataset = jev.importExamples(incoming, replace);
+      setStatus("Labels imported — retraining…");
+      await jev.train({ dataset });
+      setStatus(`Import complete. Dataset now has ${dataset.length} tickets.`);
+    } catch (error) {
+      setStatus("Couldn't finish importing and retraining. Your current labels remain available.");
+      throw error;
+    }
   };
 
   const existingLabels = jev.savedExamples.find((example) => example.state === text.trim());
@@ -273,9 +320,12 @@ export default function App() {
           <section className="review-section" aria-label="Ticket assessment" aria-live="polite">
             <div className="section-heading"><h2>Assessment</h2><span>{decision ? "Review complete" : "No review yet"}</span></div>
             {decisionCards ?? <div className="results-empty"><p>Review the message to check sentiment, urgency, and escalation.</p></div>}
+            {decision && <ConfidenceGuide decision={decision} />}
+            {decision && <button className="chip" disabled={queue.messages.includes(text.trim())} onClick={() => queue.add([text])}>{queue.messages.includes(text.trim()) ? "In review queue" : "Add to review queue"}</button>}
             {decision && <div className="assessment-actions"><button className="btn" onClick={handleCopy}>Copy assessment</button><a className="btn" href={`data:text/plain;charset=utf-8,${encodeURIComponent(formatAssessment(text, decision))}`} download="ticket-assessment.txt">Download .txt</a><span role="status">{copyStatus}</span></div>}
             {decision && manualCopy && <textarea className="copy-fallback" aria-label="Assessment to copy" readOnly rows={8} value={formatAssessment(text, decision)} onFocus={(event) => event.target.select()} />}
           </section>
+          {comparison && comparison.message === text && <AssessmentComparison comparison={comparison} />}
 
           {showLabelForm && (
             <div className="label-form" id="ticket-label-form">
@@ -309,11 +359,20 @@ export default function App() {
                   Needs escalation
                 </label>
               </div>
+              <label className="input-label" htmlFor="label-note">Notes (optional)</label>
+              <textarea id="label-note" className="label-note" rows={3} maxLength={2000} value={draftNote} onChange={(event) => setDraftNote(event.target.value)} placeholder="Why did you choose these labels?" />
+              <p className="hint">Saved with this example and included in label backups. Notes do not train the model.</p>
               <button className="btn btn--primary" onClick={handleAddExample} disabled={jev.isTraining || !text.trim()}>
                 {jev.isTraining ? "Training…" : existingLabels ? "Update labels & retrain" : "Add example & retrain"}
               </button>
             </div>
           )}
+
+          <BatchReview ready={jev.isTrained && !jev.isTraining} modelVersion={jev.modelVersion} predict={jev.predict} onOpen={replaceMessage} onReviewed={(rows) => {
+            setRecent((items) => rows.reduce((history, row) => rememberReview(history, row.message), items));
+            queue.add(rows.filter((row) => needsHumanReview(row.decision)).map((row) => row.message));
+          }} />
+          <ReviewQueue messages={queue.messages} notice={queue.notice} onOpen={replaceMessage} onComplete={queue.complete} canUndo={queue.canUndo} onUndo={queue.undo} />
 
           {recent.length > 0 && <RecentReviews messages={recent} onOpen={replaceMessage} onClear={() => setRecent([])} />}
         </section>
@@ -347,8 +406,10 @@ export default function App() {
           <SavedExamples examples={jev.savedExamples} disabled={jev.isTraining} onRemove={handleRemoveExample} onEdit={(example) => {
             replaceMessage(example.state);
             setDraftLabels({ ...example.labels });
+            setDraftNote(example.note ?? "");
             setShowLabelForm(true);
           }} />
+          <LabelBackup examples={jev.savedExamples} disabled={jev.isTraining} onImport={handleImport} />
 
           <details className="card performance-panel">
             <summary>Model performance <span aria-hidden="true">+</span></summary>
