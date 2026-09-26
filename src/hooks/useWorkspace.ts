@@ -14,9 +14,9 @@ export function rememberReview(history: string[], message: string): string[] {
   return [trimmed, ...history.filter((item) => item !== trimmed)].slice(0, HISTORY_LIMIT);
 }
 
-export function useWorkspace(initialMessage: string) {
+export function useWorkspace(initialMessage: string, draftKey = DRAFT_KEY) {
   const [text, setText] = useState(() => {
-    try { return localStorage.getItem(DRAFT_KEY) ?? initialMessage; }
+    try { return localStorage.getItem(draftKey) ?? initialMessage; }
     catch { return initialMessage; }
   });
   const [draftSaved, setDraftSaved] = useState(false);
@@ -24,10 +24,10 @@ export function useWorkspace(initialMessage: string) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(DRAFT_KEY, text);
+      localStorage.setItem(draftKey, text);
       setDraftSaved(true);
     } catch { setDraftSaved(false); }
-  }, [text]);
+  }, [text, draftKey]);
 
   return { text, setText, draftSaved, recent, setRecent };
 }

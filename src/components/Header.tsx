@@ -19,7 +19,7 @@ export function Header() {
           <span className="app-header__name">Orange</span>
         </div>
       </div>
-      <span className="app-header__context">Support tools</span>
+      <span className="app-header__context">Questions & support</span>
       <div className="app-header__actions">
         <button
           className="theme-toggle"

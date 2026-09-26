@@ -18,6 +18,19 @@ export interface TicketExample {
   labels: TicketLabels;
 }
 
+export const sampleTickets = [
+  { label: "Refund request", state: "Still no refund after 2 weeks, this is ridiculous." },
+  { label: "Thank-you note", state: "Thanks, that answers my question!" },
+  { label: "Delivery question", state: "Could you tell me when my package will arrive?" },
+  { label: "Billing issue", state: "I was charged twice for my subscription this month." },
+  { label: "Account access", state: "I can't sign in after resetting my password twice." },
+  { label: "Feature request", state: "It would be helpful to download invoices as PDFs." },
+  { label: "Service outage", state: "Our team can't access the dashboard before today's client demo." },
+  { label: "Positive feedback", state: "The support team made switching plans really easy, thank you!" },
+  { label: "Damaged order", state: "My order arrived with a cracked screen. What are my options?" },
+  { label: "Data concern", state: "Some of my saved settings disappeared after the latest update." },
+] as const;
+
 export const trainingData: TicketExample[] = [
   { state: "Still no refund after 2 weeks, this is ridiculous.", labels: { sentiment: "angry", urgency: 9, needsEscalation: true } },
   { state: "Thanks, that answers my question!", labels: { sentiment: "happy", urgency: 1, needsEscalation: false } },

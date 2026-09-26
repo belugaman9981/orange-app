@@ -5,19 +5,13 @@ import { Sparkline } from "./components/Sparkline";
 import { Icon } from "./components/Icon";
 import { RecentReviews } from "./components/RecentReviews";
 import { SavedExamples } from "./components/SavedExamples";
+import { AskQuestion } from "./components/AskQuestion";
 import { useJev, type TicketDecision } from "./hooks/useJev";
-import { unlabeledPool } from "./data/tickets";
+import { sampleTickets, unlabeledPool } from "./data/tickets";
 import type { TicketExample, TicketLabels } from "./data/tickets";
 import { rememberReview, useWorkspace } from "./hooks/useWorkspace";
 import { formatAssessment } from "./assessment";
 import "./App.css";
-
-const SAMPLE_TICKETS = [
-  "Still no refund after 2 weeks, this is ridiculous.",
-  "Thanks, that answers my question!",
-  "Could you tell me when my package will arrive?",
-];
-const SAMPLE_LABELS = ["Refund request", "Thank-you note", "Delivery question"];
 
 function escalationTone(value: boolean): "good" | "bad" {
   return value ? "bad" : "good";
@@ -36,8 +30,9 @@ function urgencyTone(value: number): "good" | "warn" | "bad" {
 }
 
 export default function App() {
+  const [mode, setMode] = useState<"tickets" | "questions">("questions");
   const jev = useJev();
-  const { text, setText, draftSaved, recent, setRecent } = useWorkspace(SAMPLE_TICKETS[0]);
+  const { text, setText, draftSaved, recent, setRecent } = useWorkspace(sampleTickets[0].state);
   const messageInput = useRef<HTMLTextAreaElement>(null);
   const copyRequest = useRef(0);
   const [previousDraft, setPreviousDraft] = useState<string | null>(null);
@@ -92,6 +87,12 @@ export default function App() {
       needsEscalation: decision.needsEscalation.value,
     });
     setShowLabelForm((value) => !value);
+  };
+
+  const handleSurpriseMe = () => {
+    const choices = sampleTickets.filter((sample) => sample.state !== text);
+    const sample = choices[Math.floor(Math.random() * choices.length)];
+    replaceMessage(sample.state);
   };
 
   useEffect(() => {
@@ -202,7 +203,12 @@ export default function App() {
   return (
     <div className="app">
       <Header />
-
+      <nav className="mode-nav" aria-label="Orange tools">
+        <button aria-pressed={mode === "questions"} onClick={() => setMode("questions")}>Ask a question</button>
+        <button aria-pressed={mode === "tickets"} onClick={() => setMode("tickets")}>Ticket triage</button>
+      </nav>
+      <div hidden={mode !== "questions"}><AskQuestion /></div>
+      <div hidden={mode !== "tickets"}>
       <div className="page-heading">
         <div>
           <h1>Ticket triage</h1>
@@ -242,11 +248,12 @@ export default function App() {
 
           <div className="sample-chips">
             <span>Examples</span>
-            {SAMPLE_TICKETS.map((sample, index) => (
-              <button key={sample} className={`chip${text === sample ? " chip--active" : ""}`} aria-pressed={text === sample} onClick={() => replaceMessage(sample)}>
-                {SAMPLE_LABELS[index]}
+            {sampleTickets.slice(0, 3).map((sample) => (
+              <button key={sample.state} className={`chip${text === sample.state ? " chip--active" : ""}`} aria-pressed={text === sample.state} onClick={() => replaceMessage(sample.state)}>
+                {sample.label}
               </button>
             ))}
+            <button className="chip" onClick={handleSurpriseMe}>Surprise me</button>
           </div>
 
           <div className="button-row review-actions">
@@ -401,6 +408,7 @@ export default function App() {
       <footer className="app-footer">
         <p><Icon name="lock" /> Messages are processed on this device.</p>
       </footer>
+      </div>
     </div>
   );
 }
