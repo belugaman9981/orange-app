@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { TicketDecision } from "../hooks/useJev";
-import { minimumConfidence, needsHumanReview, parseBatch, sortBatch, type BatchResult, type BatchSort } from "../reviewWorkflow";
+import { batchFilterLabels, filterBatch, formatBatchReport, minimumConfidence, needsHumanReview, parseBatch, sortBatch, type BatchFilter, type BatchResult, type BatchSort } from "../reviewWorkflow";
 
 interface Props {
   ready: boolean;
@@ -14,10 +14,13 @@ export function BatchReview({ ready, modelVersion, predict, onReviewed, onOpen }
   const [text, setText] = useState("");
   const [separator, setSeparator] = useState<"line" | "divider">("line");
   const [sort, setSort] = useState<BatchSort>("urgency");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<BatchFilter>("all");
   const [error, setError] = useState("");
   const [result, setResult] = useState<{ rows: BatchResult[]; version: number; source: string; separator: string } | null>(null);
   const current = result && result.version === modelVersion && result.source === text && result.separator === separator && ready;
-  const rows = current ? sortBatch(result.rows, sort) : [];
+  const rows = current ? filterBatch(sortBatch(result.rows, sort), query, filter) : [];
+  const hasFilters = query.length > 0 || filter !== "all";
 
   function review() {
     if (!ready) return;
@@ -52,13 +55,23 @@ export function BatchReview({ ready, modelVersion, predict, onReviewed, onOpen }
     {error && <p className="hint tone-bad" role="alert">{error}</p>}
     {result && !current && <p className="hint" role="status">The messages or model changed. Review the batch again for current results.</p>}
     {current && <>
-      <div className="batch-toolbar"><p className="hint" role="status">{rows.length} {rows.length === 1 ? "ticket" : "tickets"} reviewed · {rows.filter((row) => needsHumanReview(row.decision)).length} need a human check</p>
-        <label>Sort by <select value={sort} onChange={(event) => setSort(event.target.value as BatchSort)}><option value="urgency">Urgency</option><option value="escalation">Escalation first</option><option value="confidence">Lowest confidence</option><option value="original">Input order</option></select></label>
+      <div className="batch-toolbar"><p className="hint">{result.rows.length} {result.rows.length === 1 ? "ticket" : "tickets"} reviewed · {result.rows.filter((row) => needsHumanReview(row.decision)).length} need a human check</p>
+        <label htmlFor="batch-sort">Sort by <select id="batch-sort" value={sort} onChange={(event) => setSort(event.target.value as BatchSort)}><option value="urgency">Urgency</option><option value="escalation">Escalation first</option><option value="confidence">Lowest confidence</option><option value="original">Input order</option></select></label>
       </div>
+      <div className="batch-filters">
+        <label htmlFor="batch-search">Search messages<input id="batch-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search this batch" /></label>
+        <label htmlFor="batch-filter">Show<select id="batch-filter" value={filter} onChange={(event) => setFilter(event.target.value as BatchFilter)}>{Object.entries(batchFilterLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      </div>
+      <div className="batch-result-actions">
+        <p className="hint" role="status">Showing {rows.length} of {result.rows.length} {result.rows.length === 1 ? "ticket" : "tickets"}</p>
+        {hasFilters && <button className="chip" onClick={() => { setQuery(""); setFilter("all"); }}>Clear filters</button>}
+        {rows.length > 0 && <a className="btn" href={`data:text/plain;charset=utf-8,${encodeURIComponent(formatBatchReport(rows, result.rows.length, query, filter, sort))}`} download="batch-assessments.txt">Download shown results</a>}
+      </div>
+      {rows.length === 0 ? <p className="muted">No tickets match these filters. Clear the filters to see the full batch.</p> :
       <div className="table-scroll" tabIndex={0} role="region" aria-label="Batch assessments"><table className="workflow-table batch-table">
         <thead><tr><th scope="col">Message</th><th scope="col">Sentiment</th><th scope="col">Urgency</th><th scope="col">Escalate</th><th scope="col">Lowest confidence</th></tr></thead>
         <tbody>{rows.map(({ message, decision }) => <tr key={message}><td><button className="batch-message" onClick={() => onOpen(message)}>{message}</button></td><td>{decision.sentiment.value}</td><td>{decision.urgency.value.toFixed(1)} / 10</td><td>{decision.needsEscalation.value ? "Yes" : "No"}</td><td>{Math.round(minimumConfidence(decision) * 100)}%{needsHumanReview(decision) && <span className="review-flag">Check</span>}</td></tr>)}</tbody>
-      </table></div>
+      </table></div>}
     </>}
   </details>;
 }

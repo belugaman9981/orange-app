@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
-import { parseBatch, sortBatch, needsHumanReview, type BatchResult } from "./src/reviewWorkflow";
+import { parseBatch, sortBatch, filterBatch, formatBatchReport, needsHumanReview, type BatchResult } from "./src/reviewWorkflow";
 import { useReviewQueue, QUEUE_KEY } from "./src/hooks/useReviewQueue";
 import { useJev, type TicketDecision } from "./src/hooks/useJev";
 import { exportExamples, parseSavedExamples, mergeImportedExamples, EXAMPLES_KEY } from "./src/data/savedExamples";
@@ -212,5 +212,86 @@ test("confidence guidance flags low confidence and avoids claiming measured accu
   assert.match(JSON.stringify(renderer!.toJSON()), /not a measured chance/);
   act(() => renderer!.update(createElement(ConfidenceGuide, { decision: decision(4, false, 0.95) })));
   assert.equal(renderer!.root.findAllByProps({ className: "review-flag" }).length, 0);
+  act(() => renderer!.unmount());
+});
+
+test("batch filters combine search and assessment conditions without changing the source", () => {
+  const rows = [
+    { message: "Refund delayed", decision: decision(7, true, 0.8) },
+    { message: "Another REFUND", decision: decision(6.9, false, 0.6) },
+    { message: "Account locked", decision: decision(9, true, 0.6) },
+  ];
+  assert.deepEqual(filterBatch(rows, " refund ", "all"), rows.slice(0, 2));
+  assert.deepEqual(filterBatch(rows, "refund", "urgent"), [rows[0]]);
+  assert.deepEqual(filterBatch(rows, "refund", "review"), [rows[1]]);
+  assert.deepEqual(filterBatch(rows, "refund", "escalation"), [rows[0]]);
+  assert.deepEqual(filterBatch(rows, "no match", "all"), []);
+  assert.equal(rows.length, 3);
+});
+
+test("batch report preserves shown order, full messages and confidence, with filter context", () => {
+  const rows = [
+    { message: "Refund α\nSecond line", decision: decision(8, true, 0.6) },
+    { message: "Different ticket", decision: decision(2, false, 0.9) },
+  ];
+  const report = formatBatchReport(rows, 5, "refund", "review", "urgency");
+  assert.match(report, /Showing 2 of 5 tickets/);
+  assert.match(report, /Filter: Needs a human check/);
+  assert.match(report, /Search: refund/);
+  assert.match(report, /Order: Urgency/);
+  assert.ok(report.indexOf("Refund α\nSecond line") < report.indexOf("Different ticket"));
+  assert.match(report, /Urgency: 8.0 \/ 10 \(60% confidence\)/);
+  assert.match(report, /Needs escalation: Yes/);
+});
+
+test("batch UI combines filters, exports only shown results, and hides stale downloads", () => {
+  let renderer: ReturnType<typeof create>;
+  const props = { ready: true, modelVersion: 1, predict: (message: string) => message === "Refund urgent" ? decision(9, true, 0.5) : decision(2, false, 0.9), onReviewed: () => {}, onOpen: () => {} };
+  act(() => { renderer = create(createElement(BatchReview, props)); });
+  const root = renderer!.root;
+  const change = (id: string, value: string) => act(() => root.findByProps({ id }).props.onChange({ target: { value } }));
+  change("batch-messages", "Refund urgent\nRefund received\nAccount question");
+  act(() => button(root, "Review batch").props.onClick());
+  change("batch-search", "REFUND");
+  change("batch-filter", "urgent");
+  assert.equal(root.findAllByProps({ className: "batch-message" }).length, 1);
+  const link = root.findByType("a");
+  assert.equal(link.props.download, "batch-assessments.txt");
+  const report = decodeURIComponent(link.props.href.split(",")[1]);
+  assert.match(report, /Showing 1 of 3 tickets/);
+  assert.ok(report.includes("Refund urgent"));
+  assert.ok(!report.includes("Refund received"));
+  assert.ok(!report.includes("Account question"));
+  change("batch-search", "not present");
+  assert.equal(root.findAllByType("a").length, 0);
+  assert.match(JSON.stringify(renderer!.toJSON()), /No tickets match/);
+  act(() => button(root, "Clear filters").props.onClick());
+  assert.equal(root.findAllByProps({ className: "batch-message" }).length, 3);
+  act(() => renderer!.update(createElement(BatchReview, { ...props, modelVersion: 2 })));
+  assert.equal(root.findAllByType("a").length, 0);
+  act(() => renderer!.unmount());
+});
+
+test("queue search narrows open-next and completion actions without affecting hidden tickets", () => {
+  let opened = ""; let completed = "";
+  let renderer: ReturnType<typeof create>;
+  const props = { messages: ["Account locked", "Refund delayed", "Another refund"], notice: "", canUndo: false, onOpen: (message: string) => { opened = message; }, onComplete: (message: string) => { completed = message; }, onUndo: () => {} };
+  act(() => { renderer = create(createElement(ReviewQueue, props)); });
+  const root = renderer!.root;
+  act(() => root.findByType("input").props.onChange({ target: { value: " REFUND " } }));
+  assert.equal(root.findAllByType("li").length, 2);
+  act(() => button(root, "Open next ticket").props.onClick());
+  assert.equal(opened, "Refund delayed");
+  assert.equal(completed, "");
+  act(() => button(root, "Mark reviewed").props.onClick());
+  assert.equal(completed, "Refund delayed");
+  act(() => renderer!.update(createElement(ReviewQueue, { ...props, messages: ["Account locked", "Another refund"] })));
+  act(() => button(root, "Open next ticket").props.onClick());
+  assert.equal(opened, "Another refund");
+  act(() => root.findByType("input").props.onChange({ target: { value: "missing" } }));
+  assert.equal(button(root, "Open next ticket"), undefined);
+  assert.match(JSON.stringify(renderer!.toJSON()), /No queued tickets match/);
+  act(() => button(root, "Clear search").props.onClick());
+  assert.equal(root.findAllByType("li").length, 2);
   act(() => renderer!.unmount());
 });

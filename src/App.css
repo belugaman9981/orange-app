@@ -216,3 +216,11 @@ a.btn { text-decoration: none; }
   .learning-card { grid-row: 1 / span 4; }
 }
 @media (max-width: 540px) { .workflow-section > summary { flex-wrap: wrap; } .review-queue li { flex-direction: column; gap: 6px; } }
+.batch-filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 18px 0 12px; }
+.batch-filters label { display: flex; flex-direction: column; gap: 7px; color: var(--ink-700); font-size: 12px; }
+.batch-filters input { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--control-line); border-radius: 6px; background: var(--paper); color: var(--ink-900); font-size: 13px; line-height: 1.6; }
+.batch-filters select { width: 100%; min-width: 0; }
+.batch-result-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+.batch-result-actions .hint, .batch-result-actions .btn { margin-top: 0; }
+.batch-result-actions .btn { margin-left: auto; }
+@media (max-width: 540px) { .batch-filters { grid-template-columns: 1fr; } .batch-result-actions .btn { margin-left: 0; } }

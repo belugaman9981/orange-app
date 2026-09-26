@@ -91,12 +91,23 @@ characters. Duplicate messages are reviewed once. Select a result to open it in 
 single-ticket editor. Results become unavailable when the messages or model change;
 review the batch again to refresh them.
 
+Search the batch and use **Show** to focus on tickets needing a human check,
+escalation, or high urgency (7 or above). Search and the selected filter work
+together. **Download shown results** exports just the visible assessments in the
+current sort order, including full messages, confidence scores, and filter details.
+Use **Clear filters** to return to the full batch. Downloads are unavailable for
+empty filters or stale results.
+
 Single and batch reviews add messages to **Review queue** when any confidence score
 is below 70%. You can also queue a message manually or use **Find tickets** to add
 uncertain sample tickets. The queue stays on this device across reloads. Opening a
 ticket does not complete it: use **Mark reviewed** or save a correction. The most
 recent completion can be undone during the session. Confidence is a model estimate,
 not a calibrated accuracy measure; the threshold is simply a rule for human review.
+
+Search queued messages to narrow the list. **Open next ticket** opens the first
+matching item without marking it reviewed. Complete it after checking, then open
+the next match. Clearing the search restores the full queue.
 
 Add optional notes when labeling a ticket (up to 2,000 characters). Notes are saved
 with the labels but are not used to train the model. **Last correction** shows the
