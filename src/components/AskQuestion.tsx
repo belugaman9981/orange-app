@@ -3,7 +3,6 @@ import { acumenRequest, askAcumen } from "../acumen";
 import { useWorkspace } from "../hooks/useWorkspace";
 
 type Exchange = { question: string; answer: string };
-const examples = ["Solve 2*x + 3 = 11", "Calculate 0.15 * 240", "What time is it in Vancouver?"];
 
 export function AskQuestion() {
   const { text, setText, draftSaved } = useWorkspace("", "orange-app:question-draft");
@@ -58,7 +57,6 @@ export function AskQuestion() {
         <div className="section-heading"><h2>Your question</h2><button className="chip" disabled={!!busy || !exchanges.length} onClick={() => { setExchanges([]); setNotice("Conversation view cleared. AcumenAI's session is unchanged."); }}>Clear conversation view</button></div>
         <label className="input-label" htmlFor="question-input">What would you like to solve?</label>
         <div className="message-editor"><textarea id="question-input" ref={input} className="ticket-input" rows={5} value={text} disabled={busy === "answer"} maxLength={12000} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); void run("answer"); } }} placeholder="e.g. Solve 2*x + 3 = 11" /><div className="editor-footer"><span>{draftSaved ? "Draft saved on this device" : "Draft not saved — keep this tab open"}</span><span>{text.length} / 12,000</span></div></div>
-        <div className="sample-chips"><span>Try</span>{examples.map((example) => <button className="chip" key={example} disabled={!!busy} onClick={() => { setText(example); input.current?.focus(); }}>{example}</button>)}</div>
         <div className="button-row review-actions"><button className="btn btn--primary" disabled={!!busy || !connected || !text.trim()} onClick={() => void run("answer")}>{busy === "answer" ? "Asking AcumenAI…" : "Ask AcumenAI"}</button>{busy && <button className="btn" onClick={() => request.current?.abort()}>Stop waiting</button>}</div>
         <p className="keyboard-hint">Ctrl / ⌘ + Enter · Include the full problem in each question.</p>
         {error && <p className="question-error" role="alert">{error} Your question is kept.</p>}
