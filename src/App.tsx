@@ -6,6 +6,7 @@ import { Icon } from "./components/Icon";
 import { RecentReviews } from "./components/RecentReviews";
 import { SavedExamples } from "./components/SavedExamples";
 import { AskQuestion } from "./components/AskQuestion";
+import { DeskTools } from "./components/DeskTools";
 import { BatchReview } from "./components/BatchReview";
 import { ReviewQueue } from "./components/ReviewQueue";
 import { LabelBackup } from "./components/LabelBackup";
@@ -37,7 +38,8 @@ function urgencyTone(value: number): "good" | "warn" | "bad" {
 }
 
 export default function App() {
-  const [mode, setMode] = useState<"tickets" | "questions">("questions");
+  const [mode, setMode] = useState<"tickets" | "questions" | "desk">("questions");
+  const [timerState, setTimerState] = useState<"idle" | "running" | "paused" | "finished">("idle");
   const jev = useJev();
   const queue = useReviewQueue();
   const { text, setText, draftSaved, recent, setRecent } = useWorkspace(sampleTickets[0].state);
@@ -253,8 +255,10 @@ export default function App() {
       <nav className="mode-nav" aria-label="Orange tools">
         <button aria-pressed={mode === "questions"} onClick={() => setMode("questions")}>Ask a question</button>
         <button aria-pressed={mode === "tickets"} onClick={() => setMode("tickets")}>Ticket triage</button>
+        <button aria-pressed={mode === "desk"} onClick={() => setMode("desk")}>Desk tools{timerState !== "idle" && <span className="desk-timer-status" role="status">{timerState === "finished" ? "Timer finished" : timerState === "paused" ? "Timer paused" : "Timer running"}</span>}</button>
       </nav>
       <div hidden={mode !== "questions"}><AskQuestion /></div>
+      <div hidden={mode !== "desk"}><DeskTools onTimerStateChange={setTimerState} /></div>
       <div hidden={mode !== "tickets"}>
       <div className="page-heading">
         <div>

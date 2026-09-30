@@ -4,7 +4,17 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { createServer } from "vite";
 
-test("ticket workflow connects review, queue, notes, comparison and backup while preserving the question draft", async () => {
+async function waitFor(condition: () => boolean, message: string, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (!condition() && Date.now() < deadline) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+  }
+  assert.ok(condition(), message);
+}
+
+test("ticket workflow connects review, queue, notes, comparison and backup while preserving drafts and the desk timer", async () => {
   const values = new Map<string, string>();
   const storage = {
     getItem: (key: string) => values.get(key) ?? null,
@@ -12,22 +22,29 @@ test("ticket workflow connects review, queue, notes, comparison and backup while
     removeItem: (key: string) => values.delete(key),
   };
   Object.defineProperty(globalThis, "localStorage", { configurable: true, value: storage });
-  Object.defineProperty(globalThis, "window", { configurable: true, value: { localStorage: storage, addEventListener() {}, removeEventListener() {} } });
-  Object.defineProperty(globalThis, "document", { configurable: true, value: { documentElement: { dataset: {}, style: {} }, querySelector: () => null } });
+  Object.defineProperty(globalThis, "window", { configurable: true, value: { localStorage: storage, setInterval, clearInterval, addEventListener() {}, removeEventListener() {} } });
+  Object.defineProperty(globalThis, "document", { configurable: true, value: { documentElement: { dataset: {}, style: {} }, querySelector: () => null, addEventListener() {}, removeEventListener() {} } });
   const server = await createServer({ server: { middlewareMode: true }, appType: "custom" });
   let renderer: ReturnType<typeof create> | undefined;
   try {
     const { default: App } = await server.ssrLoadModule("/src/App.tsx");
     await act(async () => {
       renderer = create(createElement(App));
-      await new Promise((resolve) => setTimeout(resolve, 30));
     });
     const root = renderer!.root;
     const button = (label: string) => root.findAllByType("button").find((item) => item.children.some((child) => typeof child === "string" && child.trim() === label))!;
     const input = (id: string) => root.findByProps({ id });
     act(() => input("question-input").props.onChange({ target: { value: "Keep my separate question" } }));
+    act(() => button("Desk tools").props.onClick());
+    const notes = "Remember the customer follow-up.\nKeep this separate from my ticket.";
+    act(() => input("scratchpad-notes").props.onChange({ target: { value: notes } }));
+    assert.equal(values.get("orange-app:scratchpad"), notes);
+    act(() => button("Start timer").props.onClick());
+    assert.equal(root.findByProps({ className: "desk-timer-status" }).children[0], "Timer running");
+    act(() => button("Ask a question").props.onClick());
+    assert.equal(input("question-input").props.value, "Keep my separate question");
     act(() => button("Ticket triage").props.onClick());
-    assert.equal(button("Review ticket").props.disabled, false);
+    await waitFor(() => button("Review ticket").props.disabled === false, "The model should finish training and enable ticket review.");
     const message = "My account is locked and I need access today.";
     act(() => input("ticket-message").props.onChange({ target: { value: message } }));
     act(() => button("Review ticket").props.onClick());
@@ -52,6 +69,12 @@ test("ticket workflow connects review, queue, notes, comparison and backup while
     assert.equal(root.findAllByProps({ id: "comparison-heading" }).length, 0);
     act(() => button("Ask a question").props.onClick());
     assert.equal(input("question-input").props.value, "Keep my separate question");
+    act(() => button("Desk tools").props.onClick());
+    assert.equal(input("scratchpad-notes").props.value, notes);
+    assert.equal(root.findByProps({ className: "desk-timer-status" }).children[0], "Timer running");
+    assert.ok(button("Pause timer"));
+    act(() => button("Pause timer").props.onClick());
+    assert.equal(root.findByProps({ className: "desk-timer-status" }).children[0], "Timer paused");
   } finally {
     if (renderer) act(() => renderer!.unmount());
     await server.close();

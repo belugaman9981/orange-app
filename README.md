@@ -4,9 +4,9 @@ A simple LM inspired by [`jev`](jev.ts) — a small, dependency-free
 multi-task neural net trained from scratch via manual backprop (no
 ML libraries, no API calls once trained).
 
-Orange has two tools: **Ask a question**, powered by your local AcumenAI project,
-and **Ticket triage**, which predicts sentiment, urgency, and escalation using
-the small built-in model.
+Orange has three tabs: **Ask a question**, powered by your local AcumenAI project;
+**Ticket triage**, which predicts sentiment, urgency, and escalation using the
+small built-in model; and **Desk tools** for notes, a timer, and random picks.
 
 ## Ask questions with AcumenAI
 
@@ -70,6 +70,32 @@ its supported question types and answer quality determine the results.
 - Export/import custom labels and notes, with a preview and a choice for matching messages
 - Notes on training examples and a before/after comparison when you correct a trained model
 - Confidence explanations and a visible flag below the 70% review threshold
+- Desk tools: a saved scratchpad with copy, text download, and undo after clearing
+- A 5 / 15 / 25-minute focus timer with pause, resume, reset, and a status in the tab bar
+- Random choice picker with optional no-repeat draws and a resettable pool
+
+## Desk tools
+
+Open **Desk tools** to use the scratchpad, focus timer, and random choice picker.
+Scratchpad notes save on this device separately from question and ticket drafts.
+Use **Copy notes** or **Download .txt** to take them elsewhere. **Clear notes** has
+an undo until you start typing again or reload. If browser storage is blocked or
+full, the scratchpad stays editable and shows an unsaved notice.
+
+The timer offers 5, 15, and 25-minute sessions. Pause and resume at any point;
+reset returns to the full selected duration, ready to start. It keeps time while switching Orange
+tabs, and its status appears beside **Desk tools**. It uses the elapsed clock
+time, so returning from a background tab updates the countdown. There are no
+sounds or system notifications. Reloading the page resets the timer.
+
+For random picks, enter one choice per line (up to 100 distinct choices and
+10,000 characters). Blank lines and duplicates ignoring case are skipped.
+**No repeats** draws each choice once; **Reset draw** restores the full pool.
+Turn off **No repeats** to allow the same choice on successive draws. Editing the
+list or changing this option starts a fresh draw. Choices and draws remain when
+switching Orange tabs but reset when the page reloads. All three tools run locally.
+
+## Local storage
 
 Drafts use browser storage. Recent reviews are kept only in memory and disappear
 when the page reloads. The editor shows when a draft cannot be saved. Custom labels
@@ -141,7 +167,8 @@ npm run preview  # preview the production build
 npm test         # draft recovery, search, saved labels and training regressions
 ```
 
-`npm test` also covers AcumenAI pairing, answers, retry, cancellation, and draft
+`npm test` also covers scratchpad recovery and exports, timer controls and elapsed
+time, random draws, AcumenAI pairing, answers, retry, cancellation, and draft
 separation. To check the real AcumenAI bridge through both dev and preview proxies
 using temporary test data (after building), run from Orange:
 
