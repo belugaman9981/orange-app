@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { Scratchpad, SCRATCHPAD_KEY } from "./src/components/Scratchpad";
+import { findNoteMatches } from "./src/noteSearch";
 
 function storage(blocked = false) {
   const values = new Map<string, string>();
@@ -50,6 +51,31 @@ test("scratchpad persists separately, exports exact text, and can undo clearing"
     act(() => restored.input.props.onChange({ target: { value: "New notes" } }));
     assert.equal(restored.button("Undo clear"), undefined);
   } finally { restored.unmount(); }
+});
+
+test("notes search treats punctuation literally and preserves Unicode selection offsets", () => {
+  assert.deepEqual(findNoteMatches("🍊 İ hello HELLO [x] a.b", "hello"), [{ start: 5, end: 10 }, { start: 11, end: 16 }]);
+  assert.equal(findNoteMatches("a.b aXb", "a.b").length, 1);
+  assert.equal(findNoteMatches("[x]", "[x]").length, 1);
+  assert.deepEqual(findNoteMatches("hello", ""), []);
+  storage().set(SCRATCHPAD_KEY, "First note, second NOTE.");
+  const selections: number[][] = [];
+  let renderer: ReturnType<typeof create>;
+  act(() => { renderer = create(createElement(Scratchpad), { createNodeMock: (element) => element.type === "textarea" ? { focus() {}, setSelectionRange: (start: number, end: number) => selections.push([start, end]) } : null }); });
+  const button = (label: string) => renderer.root.findAllByType("button").find((item) => item.children.includes(label))!;
+  try {
+    act(() => renderer.root.findByProps({ id: "scratchpad-search" }).props.onChange({ target: { value: "note" } }));
+    act(() => renderer.root.findByType("form").props.onSubmit({ preventDefault() {} }));
+    assert.equal(renderer!.root.findByType("mark").children[0], "note");
+    act(() => renderer.root.findByType("form").props.onSubmit({ preventDefault() {} }));
+    assert.equal(renderer!.root.findByType("mark").children[0], "NOTE");
+    act(() => renderer.root.findByType("form").props.onSubmit({ preventDefault() {} }));
+    act(() => button("Previous match").props.onClick());
+    assert.deepEqual(selections, [[6, 10], [19, 23], [6, 10], [19, 23]]);
+    act(() => renderer.root.findByProps({ id: "scratchpad-notes" }).props.onChange({ target: { value: "Replaced" } }));
+    assert.equal(renderer!.root.findAllByType("mark").length, 0);
+    assert.equal(button("Next match").props.disabled, true);
+  } finally { act(() => renderer!.unmount()); }
 });
 
 test("scratchpad remains editable and downloadable when storage is blocked", () => {

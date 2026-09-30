@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWorkspace } from "../hooks/useWorkspace";
+import { findNoteMatches } from "../noteSearch";
 
 export const SCRATCHPAD_KEY = "orange-app:scratchpad";
 
@@ -7,6 +8,10 @@ export function Scratchpad() {
   const { text, setText, draftSaved } = useWorkspace("", SCRATCHPAD_KEY);
   const [clearedNote, setClearedNote] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
+  const [query, setQuery] = useState("");
+  const [matchIndex, setMatchIndex] = useState(-1);
+  const matches = useMemo(() => findNoteMatches(text, query), [text, query]);
+  const match = matches[matchIndex];
   const input = useRef<HTMLTextAreaElement>(null);
   const copyRequest = useRef(0);
   const words = text.trim() ? text.trim().split(/\s+/u).length : 0;
@@ -18,7 +23,16 @@ export function Scratchpad() {
   const update = (value: string) => {
     copyRequest.current += 1;
     setCopyStatus("");
+    setMatchIndex(-1);
     setText(value);
+  };
+
+  const find = (direction: number) => {
+    if (!matches.length) return;
+    const next = matchIndex < 0 ? direction > 0 ? 0 : matches.length - 1 : (matchIndex + direction + matches.length) % matches.length;
+    setMatchIndex(next);
+    input.current?.focus();
+    input.current?.setSelectionRange(matches[next].start, matches[next].end);
   };
 
   const copy = async () => {
@@ -39,6 +53,16 @@ export function Scratchpad() {
       <h2 id="scratchpad-heading">Scratchpad</h2>
       <span>Room for a rough idea</span>
     </div>
+    <details className="scratchpad-find">
+      <summary>Find in notes</summary>
+      <form onSubmit={(event) => { event.preventDefault(); find(1); }}>
+        <label className="input-label" htmlFor="scratchpad-search">Find text</label>
+        <input id="scratchpad-search" type="search" maxLength={200} value={query} onChange={(event) => { setQuery(event.target.value); setMatchIndex(-1); }} />
+        <div className="button-row"><button className="chip" type="button" disabled={!matches.length} onClick={() => find(-1)}>Previous match</button><button className="chip" type="submit" disabled={!matches.length}>Next match</button></div>
+      </form>
+      <p className="hint" role="status">{!query ? "Search is case-insensitive." : !matches.length ? "No matches." : match ? `${matchIndex + 1} of ${matches.length} matches` : `${matches.length} ${matches.length === 1 ? "match" : "matches"}`}</p>
+      {match && <p className="scratchpad-match">{match.start > 40 && "…"}{text.slice(Math.max(0, match.start - 40), match.start)}<mark>{text.slice(match.start, match.end)}</mark>{text.slice(match.end, match.end + 40)}{match.end + 40 < text.length && "…"}</p>}
+    </details>
     <label className="input-label" htmlFor="scratchpad-notes">Your notes</label>
     <div className="message-editor">
       <textarea

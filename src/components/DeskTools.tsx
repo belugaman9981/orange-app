@@ -1,6 +1,7 @@
 import { Scratchpad } from "./Scratchpad";
 import { FocusTimer } from "./FocusTimer";
 import { RandomPicker } from "./RandomPicker";
+import { Checklist } from "./Checklist";
 import "./DeskTools.css";
 
 export function DeskTools({ onTimerStateChange }: { onTimerStateChange: (state: "idle" | "running" | "paused" | "finished") => void }) {
@@ -10,7 +11,7 @@ export function DeskTools({ onTimerStateChange }: { onTimerStateChange: (state: 
       <span className="model-state">A little of everything</span>
     </div>
     <main className="desk-layout">
-      <Scratchpad />
+      <div className="desk-notes"><Scratchpad /><Checklist /></div>
       <div className="desk-utilities">
         <FocusTimer onStateChange={onTimerStateChange} />
         <RandomPicker />

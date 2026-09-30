@@ -1,5 +1,25 @@
 .desk-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 36px; border-top: 1px solid var(--line); padding-top: 26px; align-items: start; }
 .desk-layout > *, .desk-utilities > * { min-width: 0; }
+.desk-notes > * + * { border-top: 1px solid var(--line); padding-top: 26px; margin-top: 26px; }
+.checklist-entry, .timer-custom-entry { display: flex; gap: 8px; }
+.checklist-entry input, .timer-custom-entry input, .scratchpad-find input { min-width: 0; width: 100%; padding: 9px 11px; border: 1px solid var(--control-line); border-radius: 6px; background: var(--paper); color: var(--ink-900); font-size: 13px; }
+.checklist-entry .btn, .timer-custom-entry .btn { flex-shrink: 0; }
+.checklist-items { list-style: none; margin: 14px 0; padding: 0; max-height: 360px; overflow-y: auto; }
+.checklist-items li { display: flex; align-items: baseline; gap: 16px; justify-content: space-between; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+.checklist-items label { display: flex; align-items: baseline; gap: 9px; font-size: 13px; line-height: 1.6; min-width: 0; }
+.checklist-items label span { overflow-wrap: anywhere; }
+.checklist-items input { flex-shrink: 0; accent-color: var(--orange-600); }
+.checklist-items .chip { flex-shrink: 0; }
+.checklist-done span { text-decoration: line-through; color: var(--ink-500); }
+.checklist .button-row, .scratchpad-find .button-row { gap: 18px; }
+.timer-custom { margin-top: 16px; }
+.timer-custom > label { display: block; margin-bottom: 7px; font-size: 12px; color: var(--ink-500); }
+.timer-custom .muted { font-size: 11px; }
+.scratchpad-find { margin-top: 18px; font-size: 12px; }
+.scratchpad-find summary { color: var(--ink-700); cursor: pointer; }
+.scratchpad-find .input-label { margin-top: 12px; }
+.scratchpad-match { margin-top: 8px; padding: 10px; background: var(--surface-muted); line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+.scratchpad-match mark { background: var(--orange-soft); color: var(--ink-900); font-weight: 600; }
 .desk-utilities { border-left: 1px solid var(--line); padding-left: 28px; }
 .desk-utilities > * + * { border-top: 1px solid var(--line); padding-top: 26px; margin-top: 26px; }
 .scratchpad__input { min-height: 410px; }

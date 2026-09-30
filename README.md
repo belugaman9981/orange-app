@@ -76,7 +76,20 @@ its supported question types and answer quality determine the results.
 
 ## Desk tools
 
-Open **Desk tools** to use the scratchpad, focus timer, and random choice picker.
+The **Checklist** saves up to 100 tasks on this device. Add tasks with Enter,
+check them off, and clear completed items. Removing tasks has one-step undo until
+your next checklist change or reload. Unsaved changes are clearly marked if
+browser storage is unavailable.
+
+Use **Find in notes** to search the scratchpad without changing its text. Search
+ignores case, treats punctuation literally, and lets you step forward or backward
+through matches, with a highlighted excerpt for each result.
+
+The focus timer also accepts **Custom minutes** from 1 to 180. Select **Set timer**
+to apply the duration, then start the timer. Pause a running session before changing
+its length; setting a new duration resets the session.
+
+Open **Desk tools** to use the scratchpad, checklist, focus timer, and random choice picker.
 Scratchpad notes save on this device separately from question and ticket drafts.
 Use **Copy notes** or **Download .txt** to take them elsewhere. **Clear notes** has
 an undo until you start typing again or reload. If browser storage is blocked or
@@ -93,7 +106,7 @@ For random picks, enter one choice per line (up to 100 distinct choices and
 **No repeats** draws each choice once; **Reset draw** restores the full pool.
 Turn off **No repeats** to allow the same choice on successive draws. Editing the
 list or changing this option starts a fresh draw. Choices and draws remain when
-switching Orange tabs but reset when the page reloads. All three tools run locally.
+switching Orange tabs but reset when the page reloads. All Desk tools run locally.
 
 ## Local storage
 

@@ -70,6 +70,8 @@ test("timer controls show pause, resume and completion without announcing every 
     assert.equal(button("5 min").props["aria-pressed"], true);
     act(() => button("Start timer").props.onClick());
     assert.equal(button("15 min").props.disabled, true);
+    assert.equal(root.findByProps({ id: "timer-custom-minutes" }).props.disabled, true);
+    assert.equal(button("Set timer").props.disabled, true);
     now += 65_000;
     act(() => tick!());
     assert.equal(display().children[0], "03:55");
@@ -104,4 +106,23 @@ test("timer controls show pause, resume and completion without announcing every 
     if (originalDocument) Object.defineProperty(globalThis, "document", originalDocument);
     else Reflect.deleteProperty(globalThis, "document");
   }
+});
+
+test("custom timer accepts whole minutes from 1 to 180 and rejects invalid lengths", () => {
+  let renderer: ReturnType<typeof create>;
+  act(() => { renderer = create(createElement(FocusTimer)); });
+  try {
+    const input = () => renderer.root.findByProps({ id: "timer-custom-minutes" });
+    const submit = () => act(() => renderer.root.findByType("form").props.onSubmit({ preventDefault() {} }));
+    for (const value of ["", "0", "181", "1.5", "-5", "NaN"]) {
+      act(() => input().props.onChange({ target: { value } }));
+      submit();
+      assert.equal(renderer!.root.findByProps({ role: "timer" }).children[0], "25:00");
+    }
+    for (const value of ["1", "42", "180"]) {
+      act(() => input().props.onChange({ target: { value } }));
+      submit();
+      assert.equal(renderer!.root.findByProps({ role: "timer" }).children[0], `${value.padStart(2, "0")}:00`);
+    }
+  } finally { act(() => renderer!.unmount()); }
 });

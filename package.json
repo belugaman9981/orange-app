@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "selftest": "tsx jev.selftest.ts",
-    "test": "tsx --tsconfig tsconfig.app.json --test workspace.test.ts workflow.test.ts app-flow.test.ts acumen.test.ts scratchpad.test.ts focus-timer.test.ts random-picker.test.ts"
+    "test": "tsx --tsconfig tsconfig.app.json --test workspace.test.ts workflow.test.ts app-flow.test.ts acumen.test.ts scratchpad.test.ts focus-timer.test.ts random-picker.test.ts checklist.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

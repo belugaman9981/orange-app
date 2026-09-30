@@ -8,6 +8,9 @@ interface Props {
 
 export function FocusTimer({ onStateChange }: Props) {
   const [timer, setTimer] = useState(() => createFocusTimer());
+  const [customMinutes, setCustomMinutes] = useState("25");
+  const minutes = Number(customMinutes);
+  const validMinutes = customMinutes.trim() !== "" && Number.isInteger(minutes) && minutes >= 1 && minutes <= 180;
 
   useEffect(() => { onStateChange?.(timer.status); }, [onStateChange, timer.status]);
 
@@ -38,9 +41,17 @@ export function FocusTimer({ onStateChange }: Props) {
         className={`chip${timer.durationMs === minutes * 60_000 ? " chip--active" : ""}`}
         aria-pressed={timer.durationMs === minutes * 60_000}
         disabled={timer.status === "running"}
-        onClick={() => setTimer(createFocusTimer(minutes))}
+        onClick={() => { setTimer(createFocusTimer(minutes)); setCustomMinutes(String(minutes)); }}
       >{minutes} min</button>)}
     </div>
+    <form className="timer-custom" onSubmit={(event) => {
+      event.preventDefault();
+      if (timer.status !== "running" && validMinutes) setTimer(createFocusTimer(minutes));
+    }}>
+      <label htmlFor="timer-custom-minutes">Custom minutes</label>
+      <div className="timer-custom-entry"><input id="timer-custom-minutes" type="number" min={1} max={180} step={1} value={customMinutes} disabled={timer.status === "running"} aria-describedby="timer-custom-hint" onChange={(event) => setCustomMinutes(event.target.value)} /><button className="btn" type="submit" disabled={timer.status === "running" || !validMinutes}>Set timer</button></div>
+      <p className="muted" id="timer-custom-hint">1–180 minutes. Setting a length resets the session.</p>
+    </form>
     <div className="focus-timer__display" role="timer" aria-live="off" aria-label="Time remaining">{formatFocusTime(timer.remainingMs)}</div>
     <progress className="focus-timer__progress" max={timer.durationMs} value={timer.durationMs - timer.remainingMs} aria-label="Focus session progress" />
     <p className="focus-timer__status" role="status" aria-atomic="true">{statusText}</p>
